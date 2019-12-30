@@ -1,0 +1,88 @@
+//plugins {
+//    id("com.google.protobuf") version ("0.8.8")
+
+// Generate IntelliJ IDEA's .idea & .iml project files
+// Starting with 0.8.4 of protobuf-gradle-plugin, *.proto and the gen output files are added
+// to IntelliJ as sources. It is no longer necessary to add them manually to the idea {} block
+// to jump to definitions from Java and Kotlin files.
+// For best results, install the Protobuf and Kotlin plugins for IntelliJ.
+//    id("idea")
+
+// Provide convenience executables for trying out the examples.
+//    id("application")
+//}
+
+//repositories {
+//    google()
+//    jcenter()
+//    mavenCentral()
+//    mavenLocal()
+//}
+
+// IMPORTANT: You probably want the non-SNAPSHOT version of gRPC. Make sure you
+// are looking at a tagged version of the example and not "master"!
+
+// Feel free to delete the comment at the next line. It is just for safely
+// updating the version in our release process.
+
+//dependencies {
+
+//        compileOnly("javax.annotation:javax.annotation-api:1.2")
+//    val grpcVersion = "1.27.0-SNAPSHOT" // CURRENT_GRPC_VERSION
+//    val kotlinVersion = plugins.findPlugin("org.jetbrains.kotlin.jvm").kotlinPluginVersion
+//    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
+//    implementation(kotlin("stdlib"))
+//    implementation(kotlin("stdlib"))
+//    implementation("io.grpc:grpc-netty-shaded:1.27")
+//    implementation("io.grpc:grpc-protobuf:${grpcVersion}")
+//    implementation("io.grpc:grpc-stub:${grpcVersion}")
+//    compileOnly("javax.annotation:javax.annotation-api:1.2")
+//
+//    testImplementation("io.grpc:grpc-testing:${grpcVersion}")  // gRCP testing utilities
+//    testImplementation("junit:junit:4.12")
+//    testImplementation("org.mockito:mockito-core:2.28.2")
+//}
+
+//buildScript {
+    ext.grpcVersion = '1.25.0' // CURRENT_GRPC_VERSION
+//}
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:3.11.1" }
+    plugins {
+//        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+startScripts.enabled = false
+
+task helloWorldServer(type: CreateStartScripts) {
+    mainClassName = 'grpc.HelloWorldServer'
+    applicationName = 'hello-world-server'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = startScripts.classpath
+}
+
+task helloWorldClient(type: CreateStartScripts) {
+    mainClassName = 'grpc.HelloWorldClient'
+    applicationName = 'hello-world-client'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = startScripts.classpath
+}
+
+applicationDistribution.into('bin') {
+    from(helloWorldServer)
+    from(helloWorldClient)
+    fileMode = 0755
+}
+
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
